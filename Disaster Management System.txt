@@ -1,0 +1,57 @@
+import javax.swing.*;
+import java.awt.*;
+
+public class HomeInterface {
+
+    public static void main(String[] args) {
+
+        // Main Frame
+        JFrame frame = new JFrame("Disaster Management System - Home Interface");
+        frame.setSize(800, 500);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(null);
+
+        // Header Title
+        JLabel title = new JLabel("Disaster Management System", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setBounds(150, 10, 500, 40);
+        frame.add(title);
+
+        // Navigation Panel
+        JPanel navPanel = new JPanel();
+        navPanel.setLayout(new GridLayout(1, 4));
+        navPanel.setBounds(100, 70, 600, 40);
+
+        JButton homeBtn = new JButton("Home");
+        JButton alertsBtn = new JButton("Alerts");
+        JButton notifyBtn = new JButton("Notifications");
+        JButton resourcesBtn = new JButton("Resources");
+
+        navPanel.add(homeBtn);
+        navPanel.add(alertsBtn);
+        navPanel.add(notifyBtn);
+        navPanel.add(resourcesBtn);
+
+        frame.add(navPanel);
+
+        // Main Buttons Grid
+        JPanel gridPanel = new JPanel();
+        gridPanel.setLayout(new GridLayout(2, 2, 20, 20));
+        gridPanel.setBounds(150, 140, 500, 250);
+
+        JButton disasterAlertsBtn = new JButton("Disaster Alerts");
+        JButton emergencyBtn = new JButton("Emergency Notifications");
+        JButton rescueBtn = new JButton("Rescue & Resources");
+        JButton profileBtn = new JButton("Profile");
+
+        gridPanel.add(disasterAlertsBtn);
+        gridPanel.add(emergencyBtn);
+        gridPanel.add(rescueBtn);
+        gridPanel.add(profileBtn);
+
+        frame.add(gridPanel);
+
+        // Make Frame Visible
+        frame.setVisible(true);
+    }
+}
