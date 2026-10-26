@@ -1,0 +1,111 @@
+<label for="ticker">Select Stock:</label> 
+<select id="ticker"> 
+    <option value="AAPL">Apple (AAPL)</option> 
+    <option value="MSFT">Microsoft (MSFT)</option> 
+    <option value="GOOGL">Alphabet (GOOGL)</option> 
+    <option value="AMZN">Amazon (AMZN)</option> 
+    <option value="TSLA">Tesla (TSLA)</option> 
+    <option value="NFLX">Netflix (NFLX)</option> 
+    <option value="META">Meta (META)</option> 
+</select> 
+ 
+<label for="range">Select Range:</label> 
+<select id="range"> 
+    <option value="3mo">3 Months</option> 
+    <option value="6mo">6 Months</option> 
+    <option value="1y" selected>1 Year</option> 
+</select> 
+<button onclick="runExecutor()">Run</button> 
+<div id="currentPrice"></div> 
+<div id="profitLoss"></div> 
+<canvas id="stockChart" width="900" height="450"></canvas> 
+<table id="resultsTable"> 
+    <tr><th>Date</th><th>Actual</th><th>Predicted</th><th>Signal</th></tr> 
+</table> 
+<script> 
+    async function runExecutor() { 
+        const ticker = document.getElementById("ticker").value; 
+        const range = document.getElementById("range").value; 
+        const response = await 
+fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=${range
+}&interval=1d`); 
+         
+        const data = await response.json(); 
+        const timestamps = data.chart.result[0].timestamp; 
+        const closes = data.chart.result[0].indicators.quote[0].close; 
+ 
+ 
+25  
+ 
+        let predictions = []; 
+        let signals = []; 
+        const windowSize = 5; 
+        for (let i = windowSize; i < closes.length; i++) { 
+            const avg = closes.slice(i-windowSize, 
+i).reduce((a,b)=>a+b,0)/windowSize; 
+            predictions.push(avg); 
+            signals.push(avg > closes[i-1] ? "BUY" : "SELL"); 
+        } 
+ 
+        document.getElementById("currentPrice").innerHTML = `<strong>Current 
+Price of ${ticker}:</strong> $${closes[closes.length-1].toFixed(2)}`; 
+        const profit = closes[closes.length-1] - closes[0]; 
+        const profitColor = profit >= 0 ? "green" : "red"; 
+        document.getElementById("profitLoss").innerHTML = `<strong>Profit/Loss 
+if bought at first price:</strong> <span 
+style="color:${profitColor}">$${profit.toFixed(2)}</span>`; 
+        const table = document.getElementById("resultsTable"); 
+        table.innerHTML = 
+"<tr><th>Date</th><th>Actual</th><th>Predicted</th><th>Signal</th></tr>"; 
+        for (let i = windowSize; i < closes.length; i++) { 
+            const date = new Date(timestamps[i]*1000).toLocaleDateString(); 
+            const signalClass = signals[i-windowSize] === "BUY" ? "buy" : "sell"; 
+            table.innerHTML += `<tr> 
+                <td>${date}</td> 
+                <td>${closes[i].toFixed(2)}</td> 
+                <td>${predictions[i-windowSize].toFixed(2)}</td> 
+                <td class="${signalClass}">${signals[i-windowSize]}</td> 
+            </tr>`; 
+        } 
+ 
+        const buyPoints = predictions.map((val,i) => signals[i]==="BUY"?val:null); 
+        const sellPoints = predictions.map((val,i) => signals[i]==="SELL"?val:null); 
+      const ctx = document.getElementById('stockChart').getContext('2d'); 
+        new Chart(ctx, { 
+            type: 'line', 
+             
+ 
+ 
+ 
+26  
+ 
+               data: { 
+                labels: timestamps.slice(windowSize).map(ts => new 
+Date(ts*1000).toLocaleDateString()), 
+                datasets: [ 
+                    { label: 'Actual', data: closes.slice(windowSize), borderColor: 'blue', 
+backgroundColor: 'rgba(0,0,255,0.1)', fill: true }, 
+                    { label: 'Predicted', data: predictions, borderColor: 'red', 
+backgroundColor: 'rgba(255,0,0,0.1)', fill: true }, 
+                    { label: 'BUY', data: buyPoints, borderColor: 'green', 
+pointBackgroundColor: 'green', pointRadius: 6, showLine:false }, 
+                    { label: 'SELL', data: sellPoints, borderColor: 'red', 
+pointBackgroundColor: 'red', pointRadius: 6, showLine:false } 
+                ] 
+            }, 
+            options: { 
+                responsive: true, 
+                plugins: { 
+                    legend: { position: 'top' }, 
+                    title: { display: true, text: `${ticker} Stock Prices with Signals` }, 
+                    tooltip: { mode: 'index', intersect: false } 
+                }, 
+                interaction: { mode: 'nearest', intersect: false }, 
+                scales: { 
+                    x: { ticks: { maxRotation: 90, minRotation: 45 } }, 
+                    y: { beginAtZero: false } 
+                } 
+            } 
+        }); 
+    } 
+</script>
